@@ -9,11 +9,17 @@ Field data to customer report. Automatically. No servers, no integrations: every
 5. Wait about a minute. Your app is at `https://USERNAME.github.io/REPO/`.
 6. Optional, for the Messenger preview: in `index.html` replace `USERNAME` and `REPO` in the 3 lines containing `github.io` (og:url, og:image, twitter:image) using the pencil icon on GitHub.
 
+## Units
+Settings holds default pressure, flow and level units. Each reading row has its own type and unit dropdown, so mixed PSI/bar or GPM/L/s instruments are fine.
+
+## History
+Tickets > History shows a timeline for the asset tag across all its tickets: visits, faults, actions, status changes and calibration results.
+
 ## Install
 Android Chrome: menu > Install app. iOS Safari: Share > Add to Home Screen.
 
 ## Workflow
-Office creates tickets (Tickets tab), exports the workspace JSON and sends it to the engineer. The engineer imports it (Settings), does the visit offline, taps **Submit site visit**: the payload is validated, the ticket, maintenance log and audit trail are updated, and a PDF report is generated and saved. Share the PDF, and export the workspace JSON back to the office to import there (visit payloads are reprocessed on import).
+Office creates tickets (Tickets tab), exports the workspace JSON and sends it to the engineer. The engineer imports it (Settings), does the visit offline, taps **Submit site visit**: the payload is validated, the ticket, maintenance log and audit trail are updated, and a PDF report is generated and saved. Use Share, Print or Download on the ticket, and export the workspace JSON back to the office to import there (visit payloads are reprocessed on import).
 
 ## Messenger preview
 Share the live URL in Messenger. If the card is stale, refresh it at the Facebook Sharing Debugger.
