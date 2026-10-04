@@ -1,5 +1,6 @@
 import {validate} from './validator.js';import {makePdf} from './pdf.js';
 export const TYPES=['Installation','Commissioning','Calibration','Repair','Inspection','Preventive maintenance'];
+export const UNITS={Flow:['L/s','m3/h','GPM'],Level:['m','cm','ft'],Pressure:['kPa','bar','PSI'],pH:['pH'],Turbidity:['NTU'],Chlorine:['mg/L','ppm'],Conductivity:['uS/cm','mS/cm'],Other:['-']};
 export const SECTIONS=[
 {t:'Hydraulics and valves',f:[['pv_in','Pressure valve inlet (kPa)','n'],['pv_out','Pressure valve outlet (kPa)','n'],['av_test','Air valve operation test','t'],['leak','Leak check result','t'],['net','Network optimisation notes','a']]},
 {t:'Pumps, macerators, motors',f:[['cur1','Current L1 (A)','n'],['cur2','Current L2 (A)','n'],['cur3','Current L3 (A)','n'],['volt','Voltage (V)','n'],['ir','Insulation resistance (Mohm)','n'],['hrs','Runtime hours','n'],['seal','Seal / vibration / noise','t'],['fault','Fault found','a'],['action','Action taken','a']]},
@@ -20,7 +21,7 @@ export function mk(p,t,rd,s){const B=[{h:'Site visit report'},
 {h:'Summary'},{p:p.summary}];
 if(rd.length){B.push({h:'Readings and calibration'},{row:['Instrument','Reference','As found / left','Error % / result'],bold:1});
 rd.forEach(r=>B.push({row:[`${r.name} (${r.unit||''})`,String(r.ref),`${r.asFound} / ${r.asLeft}`,`${r.err} / ${r.pass?'PASS':'FAIL'}`]}))}
-for(const s of SECTIONS){const rows=s.f.filter(([k])=>p.sections?.[k]);if(rows.length){B.push({h:s.t});rows.forEach(([k,l])=>B.push({row:[l,String(p.sections[k])]}))}}
+for(const s of SECTIONS){const rows=s.f.filter(([k])=>p.sections?.[k]);if(rows.length){B.push({h:s.t});rows.forEach(([k,l])=>B.push({row:[l.replace('(kPa)',`(${p.units?.pressure||'kPa'})`),String(p.sections[k])]}))}}
 if(p.parts)B.push({h:'Parts used'},{p:p.parts});
 B.push({h:'Safety'},{p:`LOTO: ${p.safety.loto?'Yes':'No'}  PPE: ${p.safety.ppe?'Yes':'No'}  Confined space: ${p.safety.confined?'Yes':'No'}`});
 if(p.followUp)B.push({h:'Follow-up'},{p:'Next action date: '+p.followUp});
@@ -33,7 +34,7 @@ const t=await db.get('tickets',p.ticketId);if(!t)throw new Error('Ticket not fou
 const rd=calc(p.readings),bad=rd.some(r=>r.pass===false),old=t.status;
 t.status=p.status||(bad?'Follow-up':'Completed');
 t.log=(t.log||[]).filter(l=>l.visitId!==p.visitId).concat({at:p.departure||iso(),visitId:p.visitId,type:p.workType,summary:p.summary,engineer:p.engineer});
-t.history=(t.history||[]).filter(h=>h.visitId!==p.visitId).concat(rd.map(r=>({visitId:p.visitId,at:iso(),name:r.name,unit:r.unit,ref:r.ref,asLeft:r.asLeft,err:r.err,pass:r.pass})));
+t.history=(t.history||[]).filter(h=>h.visitId!==p.visitId).concat(rd.map(r=>({visitId:p.visitId,at:iso(),name:r.name,type:r.type,unit:r.unit,ref:r.ref,asLeft:r.asLeft,err:r.err,pass:r.pass})));
 t.followUp=p.followUp||null;t.audit=(t.audit||[]).concat({at:iso(),by:p.engineer,what:`Visit ${p.visitId}: ${old} -> ${t.status}`});
 const pdf=makePdf(mk(p,t,rd,s),{title:(s.company||'Field Service')+' - Report '+t.id,footer:s.footer||''});
 await db.put('tickets',t);await db.put('visits',p);await db.put('reports',{id:p.visitId,ticketId:p.ticketId,at:iso(),pdf});
